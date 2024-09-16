@@ -13,6 +13,7 @@ import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
 import { SIgnInFlow } from "../types";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { TriangleAlert } from "lucide-react";
 interface SignInCardProps {
   setState: (state: SIgnInFlow) => void;
 }
@@ -21,6 +22,18 @@ export const SignInCard = ({ setState }: SignInCardProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState<boolean>(false);
+  const [error, setError] = useState("");
+  const onPswrdSignIn = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setPending(true);
+    signIn("password", { email, password, flow: "signIn" })
+      .catch(() => {
+        setError("Invalid email or password");
+      })
+      .finally(() => {
+        setPending(false);
+      });
+  };
   const { signIn } = useAuthActions();
   const handleProviderSignIn = (value: "github" | "google") => {
     setPending(true);
@@ -34,9 +47,15 @@ export const SignInCard = ({ setState }: SignInCardProps) => {
           Use your email or anotehr service to continue
         </CardDescription>
       </CardHeader>
+      {!!error && (
+        <div className="bg-destructive/30 p-3 rounded-md flex items-center gap-x-2 text-destructive text-sm mb-3">
+          <TriangleAlert className="size-4" />
+          <p>{error}</p>
+        </div>
+      )}
 
       <CardContent className="space-y-5 px-0 pb-0">
-        <form className="space-y-2.5">
+        <form onSubmit={onPswrdSignIn} className="space-y-2.5">
           <Input
             disabled={pending}
             value={email}
