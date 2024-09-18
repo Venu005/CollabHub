@@ -11,10 +11,10 @@ type Options = {
   throwError?: boolean;
 };
 
-type RequestType = { name: string };
+type RequestType = { id: Id<"workspaces">; name: string };
 type ResponseType = Id<"workspaces"> | null;
 
-export const useCreateWorkSpace = () => {
+export const useUpdateWorkSpace = () => {
   const [data, setData] = useState<ResponseType>(null);
   const [error, setError] = useState<Error | null>(null);
   // prettier-ignore
@@ -30,7 +30,7 @@ export const useCreateWorkSpace = () => {
   //   const [isError, setIsError] = useState<boolean>(false);
   //   const [isSettled, setIsSettled] = useState<boolean>(false);
 
-  const mutation = useMutation(api.workspaces.create);
+  const mutation = useMutation(api.workspaces.update);// get id
   // call back to store it for later user
   const mutate = useCallback(
     async (values: RequestType, options?: Options) => {
@@ -44,7 +44,7 @@ export const useCreateWorkSpace = () => {
         return response;
       } catch (error) {
         // setError(error as Error);
-        setStatus("error");
+        setStatus('error')
         options?.onError?.(error as Error);
         if (options?.throwError) {
           throw error;

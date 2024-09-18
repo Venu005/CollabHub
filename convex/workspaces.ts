@@ -88,3 +88,68 @@ export const getById = query({
     return workSpaceById;
   },
 });
+
+export const update = mutation({
+  args: { id: v.id("workspaces"), name: v.string() },
+  handler: async (ctx, args) => {
+    //member  should be admin
+    const userID = await auth.getUserId(ctx);
+    if (!userID) {
+      throw new Error("Not authenticated");
+    }
+    const member = await ctx.db
+      .query("members")
+      .withIndex("by_workspace_id_user_id", (q) =>
+        q.eq("workspaceId", args.id).eq("userId", userID)
+      )
+      .unique();
+    if (!member || member?.role !== "admin") {
+      throw new Error("Not an admin");
+    }
+    const workspace = await ctx.db.get(args.id);
+    if (!workspace) {
+      throw new Error("Workspace not found");
+    }
+    await ctx.db.patch(args.id, {
+      name: args.name,
+    });
+    return args.id;
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.id("workspaces") },
+  handler: async (ctx, args) => {
+    //member  should be admin
+    const userID = await auth.getUserId(ctx);
+    if (!userID) {
+      throw new Error("Not authenticated");
+    }
+    const member = await ctx.db
+      .query("members")
+      .withIndex("by_workspace_id_user_id", (q) =>
+        q.eq("workspaceId", args.id).eq("userId", userID)
+      )
+      .unique();
+    if (!member || member?.role !== "admin") {
+      throw new Error("Not an admin");
+    }
+    const workspace = await ctx.db.get(args.id);
+    if (!workspace) {
+      throw new Error("Workspace not found");
+    }
+    //deleting membrs
+    const [members] = await Promise.all([
+      ctx.db
+        .query("members")
+        .withIndex("by_workspace_id", (q) => q.eq("workspaceId", args.id))
+        .collect(),
+    ]);
+    for (const member of members) {
+      await ctx.db.delete(member._id);
+    }
+    await ctx.db.delete(args.id);
+
+    return args.id;
+  },
+});
