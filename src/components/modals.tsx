@@ -1,5 +1,6 @@
 "use client"; // techinacally opens a boundary between client and server
 
+import { CreateChannelModal } from "@/Features/channels/components/createChannelModal";
 import { CreateWorkSpaceModal } from "@/Features/workspaces/components/createWorkSpaceModal";
 import { useEffect, useState } from "react";
 
@@ -12,5 +13,10 @@ export const Modals = () => {
   }, []);
 
   if (!mounted) return null;
-  return <CreateWorkSpaceModal />;
+  return (
+    <>
+      <CreateChannelModal />
+      <CreateWorkSpaceModal />
+    </>
+  );
 };

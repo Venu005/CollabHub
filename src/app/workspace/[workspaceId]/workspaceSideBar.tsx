@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useGetCurrentMember } from "@/Features/members/api/useGetCurrentMember";
 import { useGetWOrkSpace } from "@/Features/workspaces/api/useGetWorkSpace";
 import { useWorkSpaceId } from "@/hooks/useWorkSpaceId";
@@ -10,13 +11,17 @@ import {
 } from "lucide-react";
 import { WorkspaceHeader } from "./workspaceHeader";
 import { SideBarItem } from "./SideBarItem";
-import { useGetChannels } from "@/Features/channels/useGetChannels";
+import { useGetChannels } from "@/Features/channels/api/useGetChannels";
 import { WorkSpaceSection } from "./workSpaceSection";
 import { useGetMembers } from "@/Features/members/api/useGetMembers";
 import { UserItem } from "./UserItem";
+import { useCreateChannelModal } from "@/Features/channels/store/useCreateChannelModal";
 
 const WorkspaceSideBar = () => {
   const workspaceId = useWorkSpaceId();
+
+  const [_open, setOpen] = useCreateChannelModal();
+
   //prettier-ignore
   const { data: currWorkSpace, isLoading: workSpaceLoading } = useGetWOrkSpace({ id: workspaceId });
   //prettier-ignore
@@ -52,7 +57,11 @@ const WorkspaceSideBar = () => {
         <SideBarItem label="Threads" icon={MessageSquareText} id="threads" />
         <SideBarItem label="Drafts & Sent" icon={SendHorizonal} id="drafts" />
       </div>
-      <WorkSpaceSection label="Channels" hint="New Channel" onNew={() => {}}>
+      <WorkSpaceSection
+        label="Channels"
+        hint="New Channel"
+        onNew={member.role === "admin" ? () => setOpen(true) : undefined}
+      >
         {channels?.map((item) => (
           <SideBarItem
             key={item._id}
