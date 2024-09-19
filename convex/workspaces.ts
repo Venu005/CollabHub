@@ -61,6 +61,10 @@ export const create = mutation({
       workspaceId,
       role: "admin",
     });
+    await ctx.db.insert("channels", {
+      name: "general",
+      workspaceId,
+    });
     //* to returning entite eorkspaces
     //const workspce =  await ctx.db.get(workspaceId)
 
