@@ -68,14 +68,14 @@ const Page = () => {
     isAdmin,
   ]);
 
-  if (workSpaceData || isLoadingChannels) {
+  if (workSpaceData || isLoadingChannels || loadingCurrMember ) {
     return (
       <div className="h-full flex flex-1 items-center justify-center flex-col gap-2">
         <Loader className="size-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
-  if (!workSpaceData) {
+  if (!workSpaceData || currMember) {
     return (
       <div className="h-full flex flex-1 items-center justify-center flex-col gap-2">
         <TriangleAlert className="size-6 text-muted-foreground" />
