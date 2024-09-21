@@ -54,3 +54,91 @@ export const create = mutation({
     return channelId;
   },
 });
+
+export const getById = query({
+  args: { channelId: v.id("channels") },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
+      return null;
+    }
+
+    const channel = await ctx.db.get(args.channelId);
+    if (!channel) {
+      return null;
+    }
+    const member = await ctx.db
+      .query("members")
+      .withIndex("by_workspace_id_user_id", (q) =>
+        q.eq("workspaceId", channel.workspaceId).eq("userId", userId)
+      )
+      .unique();
+    if (!member) {
+      return null;
+    }
+
+    return channel;
+  },
+});
+
+export const update = mutation({
+  args: { id: v.id("channels"), name: v.string() },
+  handler: async (ctx, args) => {
+    //member  should be admin
+    const userID = await auth.getUserId(ctx);
+    if (!userID) {
+      throw new Error("Not authenticated");
+    }
+    const channel = await ctx.db.get(args.id);
+    if (!channel) {
+      throw new Error("Channel not found");
+    }
+    if (!channel.workspaceId) {
+      throw new Error("Workspae not found not found");
+    }
+    const member = await ctx.db
+      .query("members")
+      .withIndex("by_workspace_id_user_id", (q) =>
+        q.eq("workspaceId", channel.workspaceId).eq("userId", userID)
+      )
+      .unique();
+    if (!member || member?.role !== "admin") {
+      throw new Error("Not an admin");
+    }
+
+    await ctx.db.patch(args.id, {
+      name: args.name,
+    });
+
+    return args.id;
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.id("channels") },
+  handler: async (ctx, args) => {
+    //member  should be admin
+    const userID = await auth.getUserId(ctx);
+    if (!userID) {
+      throw new Error("Not authenticated");
+    }
+    const channel = await ctx.db.get(args.id);
+    if (!channel) {
+      throw new Error("Channel not found");
+    }
+    const member = await ctx.db
+      .query("members")
+      .withIndex("by_workspace_id_user_id", (q) =>
+        q.eq("workspaceId", channel.workspaceId).eq("userId", userID)
+      )
+      .unique();
+    if (!member || member?.role !== "admin") {
+      throw new Error("Not an admin");
+    }
+    //!deleting messages
+
+    await ctx.db.delete(channel._id);
+
+    return args.id;
+  },
+});
