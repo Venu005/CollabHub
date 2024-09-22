@@ -11,11 +11,12 @@ import {
 import { Button } from "./ui/button";
 import { PiTextAa } from "react-icons/pi";
 import { MdSend } from "react-icons/md";
-import { ImageIcon, Smile } from "lucide-react";
+import { ImageIcon, Smile, XIcon } from "lucide-react";
 import { Hint } from "./hint";
 import { Delta, Op } from "quill/core";
 import { cn } from "@/lib/utils";
-
+import { EmojiPopOver } from "./EmojiPopOver";
+import Image from "next/image";
 type EditorValue = {
   image: File | null;
   body: string;
@@ -41,6 +42,7 @@ const Editor = ({
   disabled = false,
 }: EditorProps) => {
   const [text, setText] = useState("");
+  const [image, setImage] = useState<File | null>(null);
   const [isToolBarVisible, setToolBarVisible] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const submitRef = useRef(onSubmit);
@@ -48,6 +50,7 @@ const Editor = ({
   const quillRef = useRef<Quill | null>(null);
   const defaultValueRef = useRef(defaultValue);
   const disabledRef = useRef(disabled);
+  const imageElemRef = useRef<HTMLInputElement>(null);
   // dom manip sync
   useLayoutEffect(() => {
     submitRef.current = onSubmit;
@@ -55,6 +58,7 @@ const Editor = ({
     defaultValueRef.current = defaultValue;
     disabledRef.current = disabled;
   });
+  //using refs as they don't rerender
   useEffect(() => {
     if (!containerRef.current) return;
     const container = containerRef.current;
@@ -83,7 +87,7 @@ const Editor = ({
               key: "Enter",
               shiftKey: true,
               handler: () => {
-                quill.insertText(quill.getSelection()?.index || 0, "\n");
+                quill.insertText(quill.getSelection()?.index || 0, "\n"); // go to the last index or if no sentence go to first index --- literal meaning
               },
             },
           },
@@ -101,7 +105,7 @@ const Editor = ({
     quill.on(Quill.events.TEXT_CHANGE, () => {
       setText(quill.getText());
     });
-
+    //cleaning up
     return () => {
       quill.off(Quill.events.TEXT_CHANGE);
       if (container) {
@@ -124,10 +128,47 @@ const Editor = ({
     }
   };
   const isEmpty = text.replace(/<(.|\n)*?>/g, "").trim().length === 0;
+
+  const onEmojiSelect = (emoji: any) => {
+    const quill = quillRef.current;
+    quill?.insertText(quill.getSelection()?.index || 0, emoji.native);
+  };
+
   return (
     <div className="flex flex-col">
+      <input
+        type="file"
+        accept="image/*"
+        ref={imageElemRef}
+        onChange={(event) => setImage(event.target.files![0])}
+        className="hidden"
+      />
       <div className="flex flex-col border border-slate-200  overflow-hidden focus-within:border-slate-300 focus-within:shadow-sm transition bg-white rounded-md">
         <div ref={containerRef} className="h-full ql-custom" />
+        {!!image && (
+          <div className="p-2">
+            <div className="relative size-[62px] flex items-center justify-center group/image">
+              {/* // removing the img */}
+              <Hint label="Remove Image">
+                <button
+                  onClick={() => {
+                    setImage(null);
+                    imageElemRef.current!.value = "";
+                  }}
+                  className="hidden group-hover/image:flex rounded-full bg-black/70 hover:bg-black absolute -top-3.5 -right-2.5 text-white size-6 z-[4] border-2 border-white items-center justify-center"
+                >
+                  <XIcon className="size-3.5" />
+                </button>
+              </Hint>
+              <Image
+                src={URL.createObjectURL(image)}
+                alt="Uploaded"
+                fill
+                className="rounded-xl overflow-hidden border object-cover"
+              />
+            </div>
+          </div>
+        )}
         <div className="flex px-2 pb-2 z-[5]">
           <Hint
             label={isToolBarVisible ? "Hide formatting" : "Show formatting"}
@@ -141,23 +182,18 @@ const Editor = ({
               <PiTextAa className="size-4" />
             </Button>
           </Hint>
-          <Hint label="Emoji">
-            <Button
-              disabled={disabled}
-              size={"iconSm"}
-              variant={"ghost"}
-              onClick={() => {}}
-            >
+          <EmojiPopOver onEmojiSelect={onEmojiSelect}>
+            <Button disabled={disabled} size={"iconSm"} variant={"ghost"}>
               <Smile className="size-4" />
             </Button>
-          </Hint>
+          </EmojiPopOver>
           {variant === "create" && (
             <Hint label="Image">
               <Button
                 disabled={disabled}
                 size={"iconSm"}
                 variant={"ghost"}
-                onClick={() => {}}
+                onClick={() => imageElemRef.current?.click()}
               >
                 <ImageIcon className="size-4" />
               </Button>
@@ -200,11 +236,18 @@ const Editor = ({
           )}
         </div>
       </div>
-      <div className="p-2 text-[10px] text-muted-foreground flex justify-end">
-        <p>
-          <strong>Shift + Return</strong> to add a new line
-        </p>
-      </div>
+      {variant === "create" && (
+        <div
+          className={cn(
+            "p-2 text-[10px] text-muted-foreground flex justify-end",
+            !isEmpty && "opacity-100"
+          )}
+        >
+          <p>
+            <strong>Shift + Return</strong> to add a new line
+          </p>
+        </div>
+      )}
     </div>
   );
 };
