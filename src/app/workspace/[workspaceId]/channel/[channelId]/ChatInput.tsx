@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useCreateMessage } from "@/Features/messages/api/useCreateMessage";
+import { useGenUploadUrl } from "@/Features/upload/api/useGenUploadUrl";
 import { useChannelId } from "@/hooks/useChannelId";
 import { useWorkSpaceId } from "@/hooks/useWorkSpaceId";
 import dynamic from "next/dynamic";
@@ -8,10 +10,18 @@ const Editor = dynamic(() => import("@/components/Editor"), { ssr: false });
 
 import React, { useRef, useState } from "react";
 import { toast } from "sonner";
+import { Id } from "../../../../../../convex/_generated/dataModel";
 
 interface ChatInputProps {
   placeholder: string;
 }
+
+type CreateMessageValues = {
+  channelId: Id<"channels">;
+  workspaceId: Id<"workspaces">;
+  body: string;
+  image: Id<"_storage"> | undefined;
+};
 
 export const ChatInput = ({ placeholder }: ChatInputProps) => {
   const [editorKey, setEditorKey] = useState(0);
@@ -21,6 +31,7 @@ export const ChatInput = ({ placeholder }: ChatInputProps) => {
   const workspaceId = useWorkSpaceId();
   const channelId = useChannelId();
   const { mutate: createMessage } = useCreateMessage();
+  const { mutate: generateUploadUrl } = useGenUploadUrl();
   const handleSubmit = async ({
     body,
     image,
@@ -30,21 +41,40 @@ export const ChatInput = ({ placeholder }: ChatInputProps) => {
   }) => {
     try {
       setIsPending(true);
-      await createMessage(
-        {
-          workspaceId,
-          channelId,
-          body,
-        },
-        {
-          throwError: true,
+      editorRef.current?.enable(false);
+      const values: CreateMessageValues = {
+        channelId,
+        workspaceId,
+        body,
+        image: undefined,
+      };
+      // if user uploads any image
+      if (image) {
+        const url = await generateUploadUrl({}, { throwError: true });
+        if (!url) {
+          throw new Error("Failed to generate upload url");
         }
-      );
+        const result = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": image.type },
+          body: image,
+        });
+        if (!result.ok) {
+          throw new Error("Failed to upload image");
+        }
+        const { storageId } = await result.json();
+        values.image = storageId;
+      }
+
+      await createMessage(values, {
+        throwError: true,
+      });
       setEditorKey((prev) => prev + 1);
     } catch (error) {
       toast.error("Failed to send message ");
     } finally {
       setIsPending(false);
+      editorRef.current?.enable(true);
     }
   };
   return (
