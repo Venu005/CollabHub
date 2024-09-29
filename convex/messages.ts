@@ -191,7 +191,7 @@ export const get = query({
               ({ memberId, ...rest }) => rest
             );
             return {
-              ...result,
+              ...message,
               image,
               member,
               user,
