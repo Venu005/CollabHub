@@ -1,6 +1,11 @@
 import { GetMessagesReturnType } from "@/Features/messages/api/useGetMessage";
 import { differenceInMinutes, format, isToday, isYesterday } from "date-fns";
 import Message from "./Message";
+import { ChannelHero } from "./ChannelHero";
+import { useState } from "react";
+import { Id } from "../../convex/_generated/dataModel";
+import { useWorkSpaceId } from "@/hooks/useWorkSpaceId";
+import { useGetCurrentMember } from "@/Features/members/api/useGetCurrentMember";
 interface MessageListProps {
   memberName?: string;
   memberImage?: string;
@@ -44,6 +49,11 @@ export const MessageList = ({
     },
     {} as Record<string, typeof data>
   );
+  const workspaceId = useWorkSpaceId();
+  const { data: currentMember, isLoading } = useGetCurrentMember({
+    workspaceId,
+  });
+  const [editingId, setEditingId] = useState<Id<"messages"> | null>(null);
   return (
     <div className="flex-1 flex flex-col-reverse pb-4 overflow-y-auto messages-scrollbar">
       {Object.entries(groupedMessages || {}).map(([dateKey, messages]) => (
@@ -70,16 +80,16 @@ export const MessageList = ({
                 memberId={message.memberId}
                 authorImage={message.user.image}
                 authorName={message.user.name}
-                isAuthor={false}
+                isAuthor={message.memberId === currentMember?._id}
                 reactions={message.reactions}
                 body={message.body}
                 image={message.image}
                 updatedAt={message.updatedAt}
                 createdAt={message._creationTime}
-                isEditing={false}
-                setEditingId={() => {}}
+                isEditing={editingId === message._id}
+                setEditingId={setEditingId}
                 isCompact={isCompact}
-                hideThreadBtn={false}
+                hideThreadBtn={variant === "thread"}
                 threadCount={message.threadCount}
                 threadImage={message.threadImage}
                 threadTimestamp={message.threadTimestamp}
@@ -88,6 +98,9 @@ export const MessageList = ({
           })}
         </div>
       ))}
+      {channelName && channelCreatnTime && (
+        <ChannelHero name={channelName} creationTime={channelCreatnTime} />
+      )}
     </div>
   );
 };
