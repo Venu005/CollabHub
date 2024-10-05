@@ -12,6 +12,7 @@ import { useDeleteMessage } from "@/Features/messages/api/useDeleteMessage";
 import { useConfirm } from "@/hooks/useConfirmation";
 import { useToggleReactions } from "@/Features/reactions/api/useToggleReactions";
 import { Reactions } from "./Reactions";
+import { usePanel } from "@/hooks/usePanel";
 
 const Renderer = dynamic(() => import("@/components/renderer"), { ssr: false });
 const Editor = dynamic(() => import("@/components/Editor"), { ssr: false });
@@ -36,7 +37,7 @@ interface MessageProps {
   isCompact?: boolean;
   setEditingId: (id: Id<"messages"> | null) => void;
   hideThreadBtn?: boolean;
-  threadCount: number;
+  threadCount?: number;
   threadImage?: string;
   threadTimestamp?: number;
 }
@@ -64,6 +65,7 @@ const Message = ({
   threadImage,
   threadTimestamp,
 }: MessageProps) => {
+  const { parentMessageId, onOpenMessage, onCloseMessage } = usePanel();
   const [ConfirmDialog, confirm] = useConfirm(
     "Delete message",
     "Are you sure you want to delete this message. This can't be undone"
@@ -95,6 +97,9 @@ const Message = ({
         onSuccess: () => {
           toast.success("Message deleted successfully");
           // close thread if open
+          if (parentMessageId === id) {
+            onCloseMessage();
+          }
         },
         onError: () => {
           toast.error("Failed to delete message");
@@ -164,7 +169,7 @@ const Message = ({
               isPending={isPending}
               handleEdit={() => setEditingId(id)}
               handleReaction={handleReactions}
-              handleThread={() => {}}
+              handleThread={() => onOpenMessage(id)}
               handleDelete={handleDelete}
               hideThreadBtn={hideThreadBtn}
             />
@@ -233,7 +238,7 @@ const Message = ({
             isPending={isPending}
             handleEdit={() => setEditingId(id)}
             handleReaction={handleReactions}
-            handleThread={() => {}}
+            handleThread={() => onOpenMessage(id)}
             handleDelete={handleDelete}
             hideThreadBtn={hideThreadBtn}
           />
