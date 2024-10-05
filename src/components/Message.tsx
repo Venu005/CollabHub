@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useDeleteMessage } from "@/Features/messages/api/useDeleteMessage";
 import { useConfirm } from "@/hooks/useConfirmation";
+import { useToggleReactions } from "@/Features/reactions/api/useToggleReactions";
+import { Reactions } from "./Reactions";
 
 const Renderer = dynamic(() => import("@/components/renderer"), { ssr: false });
 const Editor = dynamic(() => import("@/components/Editor"), { ssr: false });
@@ -66,11 +68,23 @@ const Message = ({
     "Delete message",
     "Are you sure you want to delete this message. This can't be undone"
   );
-  const { mutate: updateMessage, isPending: isUpdatingMessages } =
-    useUpdateMessage();
-  const { mutate: deleteMessage, isPending: isDeletingMessage } =
-    useDeleteMessage();
-  const isPending = isUpdatingMessages || isDeletingMessage;
+  //prettier-ignore
+  const { mutate: updateMessage, isPending: isUpdatingMessages } = useUpdateMessage();
+  //prettier-ignore
+  const { mutate: deleteMessage, isPending: isDeletingMessage } = useDeleteMessage();
+  //prettier-ignore
+  const {mutate: toggleReactions, isPending :isTogglingReactions } =  useToggleReactions()
+  const isPending = isUpdatingMessages;
+  const handleReactions = (value: string) => {
+    toggleReactions(
+      { messageId: id, reaction: value },
+      {
+        onError: () => {
+          toast.error("Failed to add reaction");
+        },
+      }
+    );
+  };
   const handleDelete = async () => {
     const ok = await confirm();
     if (!ok) return;
@@ -140,6 +154,7 @@ const Message = ({
                 {updatedAt ? (
                   <span className="text-xs text-muted-foreground">edited</span>
                 ) : null}
+                <Reactions data={reactions} onChange={handleReactions} />
               </div>
             )}
           </div>
@@ -148,7 +163,7 @@ const Message = ({
               isAuthor={isAuthor}
               isPending={isPending}
               handleEdit={() => setEditingId(id)}
-              handleReaction={() => {}}
+              handleReaction={handleReactions}
               handleThread={() => {}}
               handleDelete={handleDelete}
               hideThreadBtn={hideThreadBtn}
@@ -208,6 +223,7 @@ const Message = ({
               {updatedAt ? (
                 <span className="text-xs text-muted-foreground">edited</span>
               ) : null}
+              <Reactions data={reactions} onChange={handleReactions} />
             </div>
           )}
         </div>
@@ -216,7 +232,7 @@ const Message = ({
             isAuthor={isAuthor}
             isPending={isPending}
             handleEdit={() => setEditingId(id)}
-            handleReaction={() => {}}
+            handleReaction={handleReactions}
             handleThread={() => {}}
             handleDelete={handleDelete}
             hideThreadBtn={hideThreadBtn}
