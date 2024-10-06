@@ -135,9 +135,9 @@ const Editor = ({
   };
   const isEmpty = !image && text.replace(/<(.|\n)*?>/g, "").trim().length === 0;
 
-  const onEmojiSelect = (emoji: any) => {
+  const onEmojiSelect = (emojiValue: string) => {
     const quill = quillRef.current;
-    quill?.insertText(quill.getSelection()?.index || 0, emoji.native);
+    quill?.insertText(quill.getSelection()?.index || 0, emojiValue);
   };
 
   return (
