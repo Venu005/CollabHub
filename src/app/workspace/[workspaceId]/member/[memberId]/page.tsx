@@ -13,7 +13,7 @@ const MemberIdPage = () => {
   const memberId = useMemberId();
   //prettier-ignore
   const [conversationId, setConversationId] =  useState< Id<'conversations'> |null>(null)
-  const { data, mutate, isPending } = useGetOrCreateConvo();
+  const { mutate, isPending } = useGetOrCreateConvo();
   useEffect(() => {
     mutate(
       {

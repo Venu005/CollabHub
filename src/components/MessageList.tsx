@@ -52,7 +52,7 @@ export const MessageList = ({
     {} as Record<string, typeof data>
   );
   const workspaceId = useWorkSpaceId();
-  const { data: currentMember, isLoading } = useGetCurrentMember({
+  const { data: currentMember } = useGetCurrentMember({
     workspaceId,
   });
   const [editingId, setEditingId] = useState<Id<"messages"> | null>(null);

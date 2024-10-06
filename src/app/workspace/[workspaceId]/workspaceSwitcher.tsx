@@ -1,10 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useGetWOrkSpace } from "@/Features/workspaces/api/useGetWorkSpace";
@@ -21,7 +20,7 @@ export const WorkspaceSwitcher = () => {
   const [_open, setOpen] = useCreateWorkSpaceModal();
   //prettier-ignore
   const { data: workSpace, isLoading: isWorkSpaceLoading }  = useGetWOrkSpace({ id: workspaceId });
-  const { data: workSpaces, isLoading } = useGetWOrkSpaces();
+  const { data: workSpaces, } = useGetWOrkSpaces();
 
   const filteredWorkSpaces = workSpaces?.filter(
     (workSpace) => workSpace._id !== workspaceId
