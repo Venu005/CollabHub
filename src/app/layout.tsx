@@ -19,7 +19,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "CollabHUb - A perfect place to collaborate with your team",
+  title: "CollabHub - A perfect place to collaborate with your team",
   description:
     "CollabHub is a realtime chat application built for teams to collaborate actively and get the job done",
 };
