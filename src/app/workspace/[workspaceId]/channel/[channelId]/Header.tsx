@@ -97,8 +97,8 @@ export const Header = ({ channelName }: HeaderProps) => {
   };
   return (
     <>
-      <ConfirmDialog />
       <div className="bg-white border-b h-[49px] flex items-center px-4 overflow-hidden">
+        <ConfirmDialog />
         <Dialog>
           <DialogTrigger asChild>
             <Button
