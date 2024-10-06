@@ -13,6 +13,7 @@ import { useConfirm } from "@/hooks/useConfirmation";
 import { useToggleReactions } from "@/Features/reactions/api/useToggleReactions";
 import { Reactions } from "./Reactions";
 import { usePanel } from "@/hooks/usePanel";
+import { ThreadBar } from "./ThreadBar";
 
 const Renderer = dynamic(() => import("@/components/renderer"), { ssr: false });
 const Editor = dynamic(() => import("@/components/Editor"), { ssr: false });
@@ -38,6 +39,7 @@ interface MessageProps {
   setEditingId: (id: Id<"messages"> | null) => void;
   hideThreadBtn?: boolean;
   threadCount?: number;
+  threadName?: string;
   threadImage?: string;
   threadTimestamp?: number;
 }
@@ -62,6 +64,7 @@ const Message = ({
   setEditingId,
   hideThreadBtn,
   threadCount,
+  threadName,
   threadImage,
   threadTimestamp,
 }: MessageProps) => {
@@ -160,6 +163,13 @@ const Message = ({
                   <span className="text-xs text-muted-foreground">edited</span>
                 ) : null}
                 <Reactions data={reactions} onChange={handleReactions} />
+                <ThreadBar
+                  count={threadCount}
+                  image={threadImage}
+                  name={threadName}
+                  timeStamp={threadTimestamp}
+                  onClick={() => onOpenMessage(id)}
+                />
               </div>
             )}
           </div>
@@ -229,6 +239,13 @@ const Message = ({
                 <span className="text-xs text-muted-foreground">edited</span>
               ) : null}
               <Reactions data={reactions} onChange={handleReactions} />
+              <ThreadBar
+                count={threadCount}
+                image={threadImage}
+                name={threadName}
+                timeStamp={threadTimestamp}
+                onClick={() => onOpenMessage(id)}
+              />
             </div>
           )}
         </div>
