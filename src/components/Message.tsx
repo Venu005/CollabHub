@@ -68,7 +68,7 @@ const Message = ({
   threadImage,
   threadTimestamp,
 }: MessageProps) => {
-  const { parentMessageId, onOpenMessage, onCloseMessage } = usePanel();
+  const { parentMessageId, onOpenMessage, onClose, onOpenProfile } = usePanel();
   const [ConfirmDialog, confirm] = useConfirm(
     "Delete message",
     "Are you sure you want to delete this message. This can't be undone"
@@ -79,7 +79,7 @@ const Message = ({
   const { mutate: deleteMessage, isPending: isDeletingMessage } = useDeleteMessage();
   //prettier-ignore
   const {mutate: toggleReactions, isPending :isTogglingReactions } =  useToggleReactions()
-  const isPending = isUpdatingMessages;
+  const isPending = isUpdatingMessages || isTogglingReactions;
   const handleReactions = (value: string) => {
     toggleReactions(
       { messageId: id, reaction: value },
@@ -101,7 +101,7 @@ const Message = ({
           toast.success("Message deleted successfully");
           // close thread if open
           if (parentMessageId === id) {
-            onCloseMessage();
+            onClose();
           }
         },
         onError: () => {
@@ -201,7 +201,7 @@ const Message = ({
         )}
       >
         <div className="flex items-start gap-2">
-          <button>
+          <button onClick={() => onOpenProfile(memberId)}>
             <Avatar className="rounded-md ">
               <AvatarImage src={authorImage} />
               <AvatarFallback>{avatarFallBack}</AvatarFallback>
@@ -222,7 +222,7 @@ const Message = ({
               <div className="text-sm">
                 <button
                   className="font-bold text-primary hover:underline"
-                  onClick={() => {}}
+                  onClick={() => onOpenProfile(memberId)}
                 >
                   {authorName}
                 </button>
